@@ -1,0 +1,39 @@
+.button {
+    border-radius: 5px;
+    border: 1px solid #e5e5e5;
+    background: #fff;
+    font-size: 1.1rem;
+    box-shadow: 0 1px 1px #bcbcbc;
+    transition: all 50ms;
+    font-family: inherit;
+}
+
+.button-darker {
+    background: #f9f9f9;
+}
+
+.button-equal {
+    background: #5f5b5a;
+    border: none;
+    color: #fff;
+}
+
+.button:active {
+    filter: opacity(60%);
+}
+
+.button-equal:hover {
+    filter: opacity(90%);
+}
+
+.button-equal:active {
+    filter: opacity(80%);
+}
+
+.button.active {
+    filter: opacity(60%);
+}
+
+.button-equal.active {
+    filter: opacity(80%);
+}
