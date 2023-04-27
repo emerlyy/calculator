@@ -28,7 +28,8 @@ const Button = ({ id, onClick, children, type }: ButtonProps) => {
       id={id}
       className={clazz}
       type="button"
-      onClick={onClick}>
+      onClick={onClick}
+      tabIndex={-1}>
       {children}
     </button>
   );
