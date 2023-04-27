@@ -1,19 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import './Calculator.css';
 import { calculate } from '../../Helpers/Operations';
 
 import Display from "../Input/Display";
 import Button from "../Button/Button";
+import { Operation } from "types";
+import { checkElementLength } from "Helpers/checkElementLength";
 
 const Calculator = () => {
 
   const [numberField, setNumberField] = useState<string>('0');
   const [resultField, setResultField] = useState<string>('');
-  const [lastOperation, setLastOperation] = useState<string>('=');
+  const [lastOperation, setLastOperation] = useState<Operation>('=');
   const [operand, setOperand] = useState<number>(0);
 
   let timeoutHandle: NodeJS.Timeout | undefined;
+
+  const calculatorRef = useRef<HTMLDivElement>(null);
+
+  const mainDisplayRef = useRef<HTMLDivElement>(null);
 
   const onNumberClicked = (e: React.MouseEvent<HTMLButtonElement>) => {
     const target = e.target as HTMLButtonElement;
@@ -59,7 +65,8 @@ const Calculator = () => {
     }
 
     const target = event.target as HTMLButtonElement;
-    const operation = target.textContent;
+    const operation: Operation = target.textContent === 'x' ? '*' : target.textContent as Operation;
+
     if (numberField.slice(-1) === ',') {
       setNumberField(state => state.slice(0, -1));
     }
@@ -97,18 +104,18 @@ const Calculator = () => {
       return;
     }
 
-    if (['+', '-', '/', 'x'].some(el => resultField.includes(el))) {
+    if (['+', '-', '/', '*'].some(el => resultField.includes(el))) {
       setResultField((state) => state.slice(0, -1) + ' ' + operation);
       setOperand(0);
-      if(operation)
-      setLastOperation(operation);
+      if (operation)
+        setLastOperation(operation);
       return;
     }
     setResultField(numberField + ' ' + operation);
     setNumberField('0');
     setOperand(0);
-    if(operation)
-    setLastOperation(operation);
+    if (operation)
+      setLastOperation(operation);
   };
 
   const onClearAll = () => {
@@ -124,7 +131,9 @@ const Calculator = () => {
   }
 
   useEffect(() => {
-    const calculator: HTMLDivElement | null = document.querySelector('.calculator');
+
+    calculatorRef.current?.focus();
+
     let btns: HTMLButtonElement[] = [];
     const onKeyDown = ({ key, repeat }: KeyboardEvent) => {
       if (repeat)
@@ -150,30 +159,31 @@ const Calculator = () => {
         el.classList.remove('active');
       });
     }
-    if (calculator) {
-      calculator.addEventListener('keydown', onKeyDown);
-      calculator.addEventListener('keyup', onKeyUp);
+    if (calculatorRef.current) {
+      calculatorRef.current.addEventListener('keydown', onKeyDown);
+      calculatorRef.current.addEventListener('keyup', onKeyUp);
     }
+
     return () => {
-      if (calculator) {
-        calculator.removeEventListener('keydown', onKeyDown);
-        calculator.removeEventListener('keyup', onKeyUp);
+      if (calculatorRef.current) {
+        calculatorRef.current.removeEventListener('keydown', onKeyDown);
+        calculatorRef.current.removeEventListener('keyup', onKeyUp);
       }
     }
   }, []);
 
+
   useEffect(() => {
-    const display = document.getElementById('main-display');
-    if (display && display.textContent && display.textContent.length > 16) {
-      display.style.fontSize = '1.1rem';
+    const element = mainDisplayRef.current;
+    if (element) {
+      element.style.fontSize = checkElementLength(element, 16) ? '1.1rem' : '';
     }
-    return () => { if (display) display.style.fontSize = '' };
-  }, [numberField]);
+  }, [numberField])
 
   return (
-    <div className="calculator" tabIndex={-1}>
+    <div className="calculator" ref={calculatorRef} tabIndex={1}>
       <Display type="small">{resultField}</Display>
-      <Display id='main-display'>{numberField}</Display>
+      <Display ref={mainDisplayRef}>{numberField}</Display>
       <div className="buttons-wrapper">
         <Button onClick={onClearNumberField}>CE</Button>
         <Button onClick={onClearAll}>C</Button>
