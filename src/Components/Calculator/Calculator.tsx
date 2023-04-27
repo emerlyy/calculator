@@ -8,17 +8,17 @@ import Button from "../Button/Button";
 
 const Calculator = () => {
 
-  const [numberField, setNumberField] = useState('0');
-  const [resultField, setResultField] = useState('');
-  const [lastOperation, setLastOperation] = useState('=');
-  const [operand, setOperand] = useState(0);
+  const [numberField, setNumberField] = useState<string>('0');
+  const [resultField, setResultField] = useState<string>('');
+  const [lastOperation, setLastOperation] = useState<string>('=');
+  const [operand, setOperand] = useState<number>(0);
 
-  let timeoutHandle;
+  let timeoutHandle: NodeJS.Timeout | undefined;
 
-  const onNumberClicked = (e) => {
-    const target = e.target;
+  const onNumberClicked = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const target = e.target as HTMLButtonElement;
     const value = target.textContent;
-    
+
     if (numberField.includes('Digit limit met')) {
       return;
     }
@@ -36,7 +36,7 @@ const Calculator = () => {
     }
 
     if (numberField === '0' && value !== ',') {
-      setNumberField(value);
+      setNumberField(value || '0');
     }
     else if (numberField === '0' && value === ',') {
       setNumberField('0' + value);
@@ -50,15 +50,15 @@ const Calculator = () => {
 
   };
 
-  useEffect(() => () => clearTimeout(timeoutHandle), [timeoutHandle]);
+  useEffect(() => () => { timeoutHandle && clearTimeout(timeoutHandle) }, [timeoutHandle]);
 
-  const onOperationClicked = (event) => {
+  const onOperationClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
 
     if (numberField.includes('Digit limit met')) {
       return;
     }
 
-    const target = event.target;
+    const target = event.target as HTMLButtonElement;
     const operation = target.textContent;
     if (numberField.slice(-1) === ',') {
       setNumberField(state => state.slice(0, -1));
@@ -67,16 +67,18 @@ const Calculator = () => {
     if (resultField.includes('=') && operand) {
       if (operation === '=') {
         const first = parseFloat(numberField);
-        const second = parseFloat(operand);
+        const second = parseFloat(operand.toString());
         const res = calculate(first, second, lastOperation);
         setResultField(`${first} ${lastOperation} ${second} =`);
         setNumberField(res.toString());
         return;
       }
-      setResultField(numberField + ' ' + operation);
-      setNumberField('0');
-      setOperand(null);
-      setLastOperation(operation);
+      if (operation) {
+        setResultField(numberField + ' ' + operation);
+        setNumberField('0');
+        setOperand(0);
+        setLastOperation(operation);
+      }
       return;
     }
 
@@ -86,24 +88,26 @@ const Calculator = () => {
         return;
       }
       const first = parseFloat(resultField.length > 0 ? resultField.replace(',', '.') : numberField.replace(',', '.'));
-      const second = parseFloat(operand ? operand : numberField.replace(',', '.'));
+      const second = parseFloat(operand ? operand.toString() : numberField.replace(',', '.'));
       const res = calculate(first, second, lastOperation);
       setNumberField(res.toString().replace('.', ','));
       setResultField(`${first} ${lastOperation} ${second} =`);
       if (!operand)
-        setOperand(numberField);
+        setOperand(parseFloat(numberField));
       return;
     }
 
     if (['+', '-', '/', 'x'].some(el => resultField.includes(el))) {
       setResultField((state) => state.slice(0, -1) + ' ' + operation);
-      setOperand(null);
+      setOperand(0);
+      if(operation)
       setLastOperation(operation);
       return;
     }
     setResultField(numberField + ' ' + operation);
     setNumberField('0');
-    setOperand(null);
+    setOperand(0);
+    if(operation)
     setLastOperation(operation);
   };
 
@@ -112,7 +116,7 @@ const Calculator = () => {
     setNumberField('0');
     setResultField('');
     setLastOperation('=');
-    setOperand(null);
+    setOperand(0);
   }
 
   const onClearNumberField = () => {
@@ -120,9 +124,9 @@ const Calculator = () => {
   }
 
   useEffect(() => {
-    const calculator = document.querySelector('.calculator');
-    let btns = [];
-    const onKeyDown = ({ key, repeat }) => {
+    const calculator: HTMLDivElement | null = document.querySelector('.calculator');
+    let btns: HTMLButtonElement[] = [];
+    const onKeyDown = ({ key, repeat }: KeyboardEvent) => {
       if (repeat)
         return;
       if (key === 'x')
@@ -146,20 +150,24 @@ const Calculator = () => {
         el.classList.remove('active');
       });
     }
-    calculator.addEventListener('keydown', onKeyDown);
-    calculator.addEventListener('keyup', onKeyUp);
+    if (calculator) {
+      calculator.addEventListener('keydown', onKeyDown);
+      calculator.addEventListener('keyup', onKeyUp);
+    }
     return () => {
-      calculator.removeEventListener('keydown', onKeyDown);
-      calculator.removeEventListener('keyup', onKeyUp);
+      if (calculator) {
+        calculator.removeEventListener('keydown', onKeyDown);
+        calculator.removeEventListener('keyup', onKeyUp);
+      }
     }
   }, []);
 
   useEffect(() => {
     const display = document.getElementById('main-display');
-    if (display && display.textContent.length > 16) {
+    if (display && display.textContent && display.textContent.length > 16) {
       display.style.fontSize = '1.1rem';
     }
-    return () => display.style.fontSize = '';
+    return () => { if (display) display.style.fontSize = '' };
   }, [numberField]);
 
   return (

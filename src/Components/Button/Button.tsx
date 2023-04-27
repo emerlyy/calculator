@@ -1,6 +1,15 @@
 import './Button.css';
 
-const Button = ({ id, onClick, children, type }) => {
+type ButtonTypes = 'equal' | 'darker';
+
+interface ButtonProps {
+  id?: string,
+  children: string,
+  onClick?: React.MouseEventHandler<HTMLButtonElement>,
+  type?: ButtonTypes | undefined
+}
+
+const Button = ({ id, onClick, children, type }: ButtonProps) => {
   let clazz = 'button';
 
   switch (type) {
