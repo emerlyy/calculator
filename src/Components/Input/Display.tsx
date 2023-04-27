@@ -1,4 +1,4 @@
-import React from "react";
+import { forwardRef, LegacyRef } from "react";
 
 import './Display.css';
 
@@ -7,15 +7,15 @@ type DisplayTypes = 'small' | 'display';
 interface DisplayProps {
   children: string,
   type?: DisplayTypes,
-  [key: string]: any
+  [key: string]: any,
 }
 
-function Display({ type, children, ...props }: DisplayProps) {
+const Display = forwardRef(({ type, children, ...props }: DisplayProps, ref: LegacyRef<HTMLDivElement> | undefined) => {
   return (
-    <div {...props} className={type === 'small' ? "small" : "display"} >
+    <div {...props} ref={ref} className={type === 'small' ? "small" : "display"} >
       {children}
     </div>
   );
-}
+})
 
 export default Display;
